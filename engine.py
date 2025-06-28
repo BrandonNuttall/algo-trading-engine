@@ -1,16 +1,14 @@
-from engine_types import Candle
+from finance_types import Candle
 import pandas as pd
-from handlers import StrategyBase, IndicatorBase, DataHandler
-from engine_types import Broker
-from exceptions import *
-from data_validation import validate_data
+from handlers import StrategyBase, IndicatorBase, DataHandler, Broker
+from data import validate_data
 
 class Engine:
     """
-    The Engine class is responsible for running the strategy and
-    handling the data. It manages the data loading, strategy
-    loading, and the execution of the strategy on the data as well
-    as the execution of data on indicators.
+    The Engine class is responsible for running the strategy and 
+    handling the data. It manages the data loading, strategy loading,
+    and the execution of the strategy on the data as well as the 
+    execution of data on indicators.
     """
 
     def __init__(self) -> None:
@@ -22,15 +20,17 @@ class Engine:
     def run(self, handler: DataHandler=None) -> None:
         """
         By default the engine will run the strategy on the data stored
-        in the engine. If an indicator is passed in, it will run the data
-        stored by the indicator, the data stored by indicator will be the
-        backdata to be ran before the test data gets passed to it. Before 
-        running the data, it will run any indicators that may be stored in
-        the indicator or strategy.
+        in the engine. 
+        
+        If an DataHandler is passed in, it will run the data
+        stored by the DataHandler.
+        
+        Before running the data, it will run any indicators that may be
+        stored in the indicator or strategy.
 
         Args:
-            handler (DataHandler, optional): The current handler being ran
-              Defaults to None.
+            handler (DataHandler, optional): The current handler being
+                ran. Defaults to None.
 
         Raises:
             NullDataException: If the handler has no data to run
@@ -46,11 +46,9 @@ class Engine:
             data = handler.data
 
         if data is None or data.empty:
-            raise NullDataException("No data to run")
+            raise ValueError("No data to run")
         if not handler:
-            raise NullStrategyException("No handler to run")
-        if not isinstance(handler, DataHandler):
-            raise TypeError("Handler must be a DataHandler object")
+            raise ValueError("No handler to run")
         
         if handler.indicators:
             self._run_indicators(handler)
@@ -58,9 +56,21 @@ class Engine:
         self._iter_data(data, handler)
 
     def load_data(self, data: pd.DataFrame) -> None:
+        """ 
+        Loads the data being passed in for the strategy to be tested on
+
+        Args:
+            data (pd.DataFrame): Data to be tested on.
+        """
         self.data = data
 
     def load_strategy(self, strategy: StrategyBase) -> None:
+        """
+        Loads the strategy to be tested and takes its broker.
+
+        Args:
+            strategy (StrategyBase): Strategy to be tested.
+        """
         self.strategy = strategy
         strategy.broker = self.broker
 
@@ -70,19 +80,20 @@ class Engine:
     def _run_indicators(self, handler: DataHandler) -> None:
         """
         For each indicator in the handler, it will check if there
-        is data stored by the indicator. If there is, it will run that
-        indicator. If there isnt, it will recursively run any indicators
-        that may be stored in the indicator.
+        is data stored by the indicator.
+        
+        If there is, it will call run(indicator) on that indicator. 
+        
+        If there isnt, it will recursively call run_indicators() on
+        that indicator.
 
         Args:
-            handler (DataHandler): The handler which contains the indicators
+            handler (DataHandler): The handler which contains the 
+                indicators
 
         Raises:
             TypeError: The handler is not a DataHandler object
         """
-
-        if not isinstance(handler, DataHandler):
-            raise TypeError("Handler must be a DataHandler object")
     
         for i in handler.indicators:
 
@@ -93,10 +104,12 @@ class Engine:
 
     def _iter_data(self, data: pd.DataFrame, handler: DataHandler) -> None:
         """
-        Iterates through the data and assigns the handler the frequency of 
-        the data. It than iterates through the data and createa a candle 
-        object for each row in the data, determining if it is the first or
-        last candle before passing it to the handler.
+        Assigns the handler the frequency of the data. And identifies
+        the first and last candles in the dataset.
+        
+        It then iterates through the data and creates a candle 
+        object for each row in the data, determining if it is the first
+        or last candle before passing it to the handler.
 
         Args:
             data (pd.DataFrame): data to be passed to handler
@@ -106,14 +119,6 @@ class Engine:
             TypeError: data or handler is not the correct type
             InvalidDataException: data is improperly formatted
         """
-
-        if not isinstance(data, pd.DataFrame):
-            raise TypeError("Data must be a pandas.DataFrame")
-        if not isinstance(handler, DataHandler):
-            raise TypeError("Handler must be a DataHandler object")
-        
-        if not validate_data(data):
-            raise InvalidDataException("Data is improperly formatted")
 
         handler.frequency = self.get_frequency(data)
 
@@ -150,7 +155,7 @@ class Engine:
             raise TypeError("Data must be a pandas.DataFrame")
         
         if not validate_data(data):
-            raise InvalidDataException("Data is improperly formatted")
+            raise ValueError("Data is improperly formatted")
 
         self._data = data
 
