@@ -1,7 +1,7 @@
 from finance_types import Candle
 import pandas as pd
 from handlers import StrategyBase, IndicatorBase, DataHandler, Broker
-from data import validate_data
+from data import validate_data, get_frequency
 
 class Engine:
     """
@@ -73,9 +73,6 @@ class Engine:
         """
         self.strategy = strategy
         strategy.broker = self.broker
-
-    def get_frequency(self, data: pd.DataFrame) -> str:
-        pass
 
     def _run_indicators(self, handler: DataHandler) -> None:
         """
