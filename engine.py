@@ -117,7 +117,7 @@ class Engine:
             InvalidDataException: data is improperly formatted
         """
 
-        handler.frequency = self.get_frequency(data)
+        handler.frequency = get_frequency(data)
 
         first_dt = data.iloc[0].name
         last_dt = data.iloc[-1].name

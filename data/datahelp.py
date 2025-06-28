@@ -26,4 +26,4 @@ def validate_data(data: pd.DataFrame) -> bool:
     pass
 
 def get_frequency(self, data: pd.DataFrame) -> str:
-        pass
+    pass
